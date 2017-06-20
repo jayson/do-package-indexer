@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+#
+# Updates & Builds the web base image
+#
+
+while getopts ":Mmp" Option
+do
+  case $Option in
+    M ) major=true;;
+    m ) minor=true;;
+    p ) patch=true;;
+  esac
+done
+
+IMAGE_NAME="pkgindexer"
+
+# Get Latest version and bump
+version=$(docker images $IMAGE_NAME --format '{{.Tag}}' | ./bin/version-sort | grep 0 | head -n 1)
+
+if [ -z $version ]
+then
+    version="0.1.0"
+fi
+
+# Build array from version string.
+a=( ${version//./ } )
+
+# Increment version numbers as requested.
+if [ ! -z $major ]
+then
+  ((a[0]++))
+  a[1]=0
+  a[2]=0
+fi
+
+if [ ! -z $minor ]
+then
+  ((a[1]++))
+  a[2]=0
+fi
+
+if [ ! -z $patch ]
+then
+  ((a[2]++))
+fi
+
+BUILD_VERSION=$(echo "${a[0]}.${a[1]}.${a[2]}")
+
+echo "New version: $BUILD_VERSION"
+
+echo "Building Docker Image..."
+docker build . -t $IMAGE_NAME:$BUILD_VERSION -t $IMAGE_NAME:latest 

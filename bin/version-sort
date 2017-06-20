@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Version sort that will work on Darwin and Ubuntu
+sort -s -t- -k 2,2nr |  sort -t. -s -k 1,1nr -k 2,2nr -k 3,3nr -k 4,4nr
