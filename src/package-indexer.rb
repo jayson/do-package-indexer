@@ -1,12 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'socket'
-require 'pstore'
+require 'lib/package_indexer'
 
-server = TCPServer.open(8080)
-loop do
-  Thread.start(server.accept) do |client|
-    client.puts(Time.now.ctime)
-    client.close
-  end
-end
+server = new PackageIndexer
+server.run(8080)
