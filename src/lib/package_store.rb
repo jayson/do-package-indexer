@@ -11,7 +11,7 @@ class PackageStore
   def initialize
     # Use a single mutex for all threads
     @mutex = Mutex.new
-    @index = { packages: [], deps: [] }
+    @index = { packages: [], deps: {} }
   end
 
   # Adds a package and deps to storage. Thread safe with Mutex
@@ -21,26 +21,32 @@ class PackageStore
 
       PackageLogger.instance.debug("Installing #{pkg_name} with #{deps}")
       if deps.length > 0
-        puts deps.to_s
-        deps.each { |dep|
-          puts deps
-          PackageLogger.instance.debug("#{pkg_name} searching #{dep}")
+        deps.each do |dep|
+          PackageLogger.instance.debug("#{pkg_name} needs #{dep}")
           return false unless @index[:packages].include?(dep.to_s)
-          PackageLogger.instance.debug("#{pkg_name} found#{dep}")
-        }
+          PackageLogger.instance.debug("#{pkg_name} found #{dep}")
+        end
       end
 
-      PackageLogger.instance.debug("#{pkg_name} push")
       @index[:packages].push(pkg_name)
-      PackageLogger.instance.debug("#{pkg_name} pushed")
+      @index[:deps][pkg_name] = deps
       true
     end
   end
 
+  # Looks up whether or not a package is indexed
+  def query_package(pkg_name)
+    @index[:packages].include?(pkg_name)
+  end
+
   # Removes a package if nothing depends on it
   def remove_package(pkg_name)
-    puts "Removing #{pkg_name}"
     with_mutex do
+      if @index[:deps].key? pkg_name
+        @index[:deps][pkg_name].each do |pkg|
+          return false if query_package(pkg)
+        end
+      end
       @index[:packages].delete(pkg_name)
       return true
     end

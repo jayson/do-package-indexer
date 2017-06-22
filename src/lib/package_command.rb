@@ -100,7 +100,8 @@ class PackageCommand
       result = PackageStore.instance.add_package(cmd_hash[:package], cmd_hash[:deps])
       return command_fail unless result
     when :QUERY
-      puts 'querying package'
+      result = PackageStore.instance.query_package(cmd_hash[:package])
+      return command_fail unless result
     when :REMOVE
       result = PackageStore.instance.remove_package(cmd_hash[:package])
       return command_fail unless result
