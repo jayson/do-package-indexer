@@ -45,13 +45,13 @@ class PackageCommand
     end
 
     # Check for invalid package names
-    if cmd_array[0].upcase == "INDEX" && /[^a-zA-Z0-9\-_]/ =~ cmd_array[1]
+    if cmd_array[0].upcase == "INDEX" && /[^a-zA-Z0-9\-_+]/ =~ cmd_array[1]
       PackageLogger.instance.debug("Invalid package name #{cmd_array[1]}")
       return false
     end
 
     # Check for invalid dep names
-    if cmd_array[0].upcase == "INDEX" &&/[^a-zA-Z0-9\-_,]/ =~ cmd_array[2]
+    if cmd_array[0].upcase == "INDEX" &&/[^a-zA-Z0-9\-_+,]/ =~ cmd_array[2]
       PackageLogger.instance.debug("Invalid deps format: #{cmd_array[1]}")
       return false
     end
@@ -64,6 +64,8 @@ class PackageCommand
     cmd.chomp!
     PackageLogger.instance.debug("Received #{cmd} from socket")
     # Start with splitting on pipes
+
+    return parse_error if cmd.count('|') != 2
     cmd_array = cmd.split('|')
 
     PackageLogger.instance.debug("Parsed cmd into array: #{cmd_array}")
@@ -78,8 +80,8 @@ class PackageCommand
     cmd_hash = {}
     cmd_hash[:type] = cmd_array[0].upcase.to_sym
     cmd_hash[:package] = cmd_array[1].downcase
-    cmd_hash[:deps] = ""
-    cmd_hash[:deps] = cmd_array[2].downcase if cmd_array.length == 3
+    cmd_hash[:deps] = []
+    cmd_hash[:deps] = cmd_array[2].downcase.split(',') if cmd_array.length == 3
 
     PackageLogger.instance.debug("Parsed hash: #{cmd_hash}")
 
@@ -95,11 +97,13 @@ class PackageCommand
     puts cmd_hash.to_s
     case cmd_hash[:type]
     when :INDEX
-      PackageStore.instance.add_package(cmd_hash[:package], cmd_hash[:deps])
+      result = PackageStore.instance.add_package(cmd_hash[:package], cmd_hash[:deps])
+      return command_fail unless result
     when :QUERY
       puts 'querying package'
     when :REMOVE
-      PackageStore.instance.remove_package(cmd_hash[:package])
+      result = PackageStore.instance.remove_package(cmd_hash[:package])
+      return command_fail unless result
     else
       return command_error
     end
