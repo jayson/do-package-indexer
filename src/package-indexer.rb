@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'lib/package_indexer'
+require './lib/package_indexer.rb'
 
-server = new PackageIndexer
-server.run(8080)
+server = PackageIndexer.new
+server.run_server(8080)

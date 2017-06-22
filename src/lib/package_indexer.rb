@@ -1,5 +1,6 @@
 require 'socket'
-require 'lib/package_command'
+require './lib/package_command'
+require './lib/package_logger'
 
 # This class is responsible for running the package index server
 class PackageIndexer
@@ -7,10 +8,16 @@ class PackageIndexer
     server = TCPServer.open(port)
 
     loop do
+      pkg_store = PackageStore.instance
       Thread.start(server.accept) do |client|
+        cmd = PackageCommand.new
+
         loop do
           line = client.gets
-          puts line
+          PackageLogger.instance.debug("Starting line #{line.chomp}")
+          response = cmd.run_command(line)
+          PackageLogger.instance.debug("#{line.chomp} Command response: #{response}")
+          client.puts response
         end
       end
     end
