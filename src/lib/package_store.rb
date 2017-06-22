@@ -61,7 +61,7 @@ class PackageStore
       begin 
         yield
       rescue Exception => e
-        PackageLogger.instance.warn("Unable to store pkg index... #{e.tos}")
+        PackageLogger.instance.fatal("Unable to store pkg index... #{e.to_s}")
       end
     end
     PackageLogger.instance.debug("mutex done")

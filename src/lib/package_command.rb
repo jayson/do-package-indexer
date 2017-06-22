@@ -3,7 +3,7 @@ require './lib/package_store'
 
 # Class to parse and validate command from client
 class PackageCommand
-  # Immutable constant for valid command strings
+  # Immutable constants for valid command strings
   VALID_COMMANDS = %i[INDEX QUERY REMOVE].freeze
   OK_RESPONSE = "OK\n".freeze
   ERROR_RESPONSE = "ERROR\n".freeze
@@ -94,7 +94,6 @@ class PackageCommand
       return command_error 
     end
 
-    puts cmd_hash.to_s
     case cmd_hash[:type]
     when :INDEX
       result = PackageStore.instance.add_package(cmd_hash[:package], cmd_hash[:deps])

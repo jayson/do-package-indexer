@@ -8,7 +8,6 @@ class PackageIndexer
     server = TCPServer.open(port)
 
     loop do
-      pkg_store = PackageStore.instance
       Thread.start(server.accept) do |client|
         cmd = PackageCommand.new
 
