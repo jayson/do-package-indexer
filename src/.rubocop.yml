@@ -1,6 +1,6 @@
 AllCops:
     Exclude:
-        - 'spec/spec_helper.rb'
+        - 'spec/*.rb'
 Metrics/LineLength:
     Max: 120
 Metrics/MethodLength:
