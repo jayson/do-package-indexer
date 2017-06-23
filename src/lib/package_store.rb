@@ -59,6 +59,7 @@ class PackageStore
           end
         end
       end
+      @index[:deps].delete(pkg_name)
       @index[:packages].delete(pkg_name)
       @logger.info("Removed #{pkg_name} from index")
       return true
