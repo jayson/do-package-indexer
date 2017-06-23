@@ -21,7 +21,7 @@ class PackageStore
       return true if @index[:packages].include?(pkg_name)
 
       @logger.debug("Installing #{pkg_name} with #{deps}")
-      if deps.length > 0
+      unless deps.empty?
         deps.each do |dep|
           @logger.debug("#{pkg_name} needs #{dep}")
           return false unless @index[:packages].include?(dep.to_s)
@@ -63,14 +63,14 @@ class PackageStore
 
   # Helper method for thread safe locking operations
   def with_mutex
-    @logger.debug("waiting for mutex...")
+    @logger.debug('waiting for mutex...')
     @mutex.synchronize do
-      begin 
+      begin
         yield
       rescue
-        @logger.fatal("Unable to store pkg index...")
+        @logger.fatal('Unable to store pkg index...')
       end
     end
-    @logger.debug("mutex done")
+    @logger.debug('mutex done')
   end
 end

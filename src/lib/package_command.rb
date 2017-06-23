@@ -49,13 +49,13 @@ class PackageCommand
     end
 
     # Check for invalid package names
-    if cmd_array[0].upcase == "INDEX" && /[^a-zA-Z0-9\-_+]/ =~ cmd_array[1]
+    if cmd_array[0].casecmp('INDEX') && /[^a-zA-Z0-9\-_+]/ =~ cmd_array[1]
       @logger.debug("Invalid package name #{cmd_array[1]}")
       return false
     end
 
     # Check for invalid dep names
-    if cmd_array[0].upcase == "INDEX" &&/[^a-zA-Z0-9\-_+,]/ =~ cmd_array[2]
+    if cmd_array[0].casecmp('INDEX') && /[^a-zA-Z0-9\-_+,]/ =~ cmd_array[2]
       @logger.debug("Invalid deps format: #{cmd_array[1]}")
       return false
     end
@@ -74,9 +74,7 @@ class PackageCommand
 
     @logger.debug("Parsed cmd into array: #{cmd_array}")
 
-    unless valid_command?(cmd_array)
-      return parse_error
-    end
+    return parse_error unless valid_command?(cmd_array)
 
     @logger.debug("Command valid: #{cmd_array}")
 
@@ -95,7 +93,7 @@ class PackageCommand
   def execute_command(cmd_hash)
     # Package Name is required
     unless cmd_hash.key?(:package) && !cmd_hash[:package].empty?
-      return command_error 
+      return command_error
     end
 
     case cmd_hash[:type]
