@@ -97,12 +97,12 @@ describe '.run_command' do
 
   context 'removing packages' do
     it 'fails removing dependent packages' do
-      response = pkg_cmd.run_command("REMOVE|glibc-common|\n")
+      response = pkg_cmd.run_command("REMOVE|glibc|\n")
       expect(response).to eql("FAIL\n")
     end
 
     it 'removes package with no deps' do
-      response = pkg_cmd.run_command("REMOVE|glibc|\n")
+      response = pkg_cmd.run_command("REMOVE|glibc-common|\n")
       expect(response).to eql("OK\n")
     end
 

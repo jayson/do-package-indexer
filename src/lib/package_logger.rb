@@ -7,7 +7,7 @@ class PackageLogger
 
   def initialize(file = '/var/log/package-indexer/index.log')
     @logger = Logger.new(file)
-    @logger.level = Logger::WARN
+    @logger.level = Logger::INFO
   end
 
   # Pass through our logger methods to standard Logger class

@@ -23,7 +23,7 @@ class PackageStore
       unless deps.empty?
         deps.each do |dep|
           @logger.debug("#{pkg_name} needs #{dep}")
-          return false unless @index[:packages].key?(dep.to_s)
+          return false unless query_package(dep.to_s)
           @logger.debug("#{pkg_name} found #{dep}")
         end
       end
@@ -32,11 +32,10 @@ class PackageStore
       # Store reverse dependency lookup
       unless deps.empty?
         deps.each do |dep|
-          @index[:deps][dep] = [] unless @index[:deps].key?(dep)
-          @index[:deps][dep].push(pkg_name)
+          @index[:deps][dep] = {} unless @index[:deps].key?(dep)
+          @index[:deps][dep][pkg_name] = true
         end
       end
-      @index[:deps][pkg_name] = deps
       @logger.info("Added #{pkg_name} to index")
       true
     end
@@ -52,14 +51,13 @@ class PackageStore
   def remove_package(pkg_name)
     with_mutex do
       if @index[:deps].key? pkg_name
-        @index[:deps][pkg_name].each do |pkg|
+        @index[:deps][pkg_name].each do |pkg, junk|
           if query_package(pkg)
             @logger.info("Unable to remove package #{pkg_name} due to dependency on #{pkg}")
             return false
           end
         end
       end
-      @index[:deps].delete(pkg_name)
       @index[:packages].delete(pkg_name)
       @logger.info("Removed #{pkg_name} from index")
       return true
