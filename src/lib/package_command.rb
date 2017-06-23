@@ -9,6 +9,10 @@ class PackageCommand
   ERROR_RESPONSE = "ERROR\n".freeze
   FAIL_RESPONSE = "FAIL\n".freeze
 
+  def initialize
+    @logger = PackageLogger.instance
+  end
+
   def run_command(cmd)
     # Do some inital sanity checks
     return command_error if cmd.empty?
@@ -28,31 +32,31 @@ class PackageCommand
   def valid_command?(cmd_array)
     # Check for invalid number of parameters
     if cmd_array.length < 2 || cmd_array.length > 3
-      PackageLogger.instance.debug("Invalid number of params for #{cmd_array}")
+      @logger.debug("Invalid number of params for #{cmd_array}")
       return false
     end
 
     # Check for valid commands
     unless VALID_COMMANDS.include?(cmd_array[0].upcase.to_sym)
-      PackageLogger.instance.debug("Invalid command: #{cmd_array[0]}")
+      @logger.debug("Invalid command: #{cmd_array[0]}")
       return false
     end
 
     # Check for empty package names
     if cmd_array[1].empty?
-      PackageLogger.instance.debug('Package Name Empty')
+      @logger.debug('Package Name Empty')
       return false
     end
 
     # Check for invalid package names
     if cmd_array[0].upcase == "INDEX" && /[^a-zA-Z0-9\-_+]/ =~ cmd_array[1]
-      PackageLogger.instance.debug("Invalid package name #{cmd_array[1]}")
+      @logger.debug("Invalid package name #{cmd_array[1]}")
       return false
     end
 
     # Check for invalid dep names
     if cmd_array[0].upcase == "INDEX" &&/[^a-zA-Z0-9\-_+,]/ =~ cmd_array[2]
-      PackageLogger.instance.debug("Invalid deps format: #{cmd_array[1]}")
+      @logger.debug("Invalid deps format: #{cmd_array[1]}")
       return false
     end
 
@@ -62,19 +66,19 @@ class PackageCommand
   # Parse command string and valiate for errors
   def parse_command(cmd)
     cmd.chomp!
-    PackageLogger.instance.debug("Received #{cmd} from socket")
+    @logger.debug("Received #{cmd} from socket")
     # Start with splitting on pipes
 
     return parse_error if cmd.count('|') != 2
     cmd_array = cmd.split('|')
 
-    PackageLogger.instance.debug("Parsed cmd into array: #{cmd_array}")
+    @logger.debug("Parsed cmd into array: #{cmd_array}")
 
     unless valid_command?(cmd_array)
       return parse_error
     end
 
-    PackageLogger.instance.debug("Command valid: #{cmd_array}")
+    @logger.debug("Command valid: #{cmd_array}")
 
     # Return parsed command line
     cmd_hash = {}
@@ -83,7 +87,7 @@ class PackageCommand
     cmd_hash[:deps] = []
     cmd_hash[:deps] = cmd_array[2].downcase.split(',') if cmd_array.length == 3
 
-    PackageLogger.instance.debug("Parsed hash: #{cmd_hash}")
+    @logger.debug("Parsed hash: #{cmd_hash}")
 
     cmd_hash
   end

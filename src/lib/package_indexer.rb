@@ -13,9 +13,9 @@ class PackageIndexer
 
         loop do
           line = client.gets
-          PackageLogger.instance.debug("Starting line #{line.chomp}")
+          PackageLogger.instance.info("Starting line #{line.chomp}")
           response = cmd.run_command(line)
-          PackageLogger.instance.debug("#{line.chomp} Command response: #{response}")
+          PackageLogger.instance.info("#{line.chomp} Command response: #{response}")
           client.puts response
         end
       end

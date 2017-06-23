@@ -12,6 +12,7 @@ class PackageStore
     # Use a single mutex for all threads
     @mutex = Mutex.new
     @index = { packages: [], deps: {} }
+    @logger = PackageLogger.instance
   end
 
   # Adds a package and deps to storage. Thread safe with Mutex
@@ -19,23 +20,25 @@ class PackageStore
     with_mutex do
       return true if @index[:packages].include?(pkg_name)
 
-      PackageLogger.instance.debug("Installing #{pkg_name} with #{deps}")
+      @logger.debug("Installing #{pkg_name} with #{deps}")
       if deps.length > 0
         deps.each do |dep|
-          PackageLogger.instance.debug("#{pkg_name} needs #{dep}")
+          @logger.debug("#{pkg_name} needs #{dep}")
           return false unless @index[:packages].include?(dep.to_s)
-          PackageLogger.instance.debug("#{pkg_name} found #{dep}")
+          @logger.debug("#{pkg_name} found #{dep}")
         end
       end
 
       @index[:packages].push(pkg_name)
       @index[:deps][pkg_name] = deps
+      @logger.info("Added #{pkg_name} to index")
       true
     end
   end
 
   # Looks up whether or not a package is indexed
   def query_package(pkg_name)
+    @logger.info("Querying for #{pkg_name}")
     @index[:packages].include?(pkg_name)
   end
 
@@ -44,10 +47,14 @@ class PackageStore
     with_mutex do
       if @index[:deps].key? pkg_name
         @index[:deps][pkg_name].each do |pkg|
-          return false if query_package(pkg)
+          if query_package(pkg)
+            @logger.info("Unable to remove package #{pkg_name} due to dependency on #{pkg}")
+            return false
+          end
         end
       end
       @index[:packages].delete(pkg_name)
+      @logger.info("Removed #{pkg_name} from index")
       return true
     end
   end
@@ -56,14 +63,14 @@ class PackageStore
 
   # Helper method for thread safe locking operations
   def with_mutex
-    PackageLogger.instance.debug("waiting for mutex...")
+    @logger.debug("waiting for mutex...")
     @mutex.synchronize do
       begin 
         yield
-      rescue Exception => e
-        PackageLogger.instance.fatal("Unable to store pkg index... #{e.to_s}")
+      rescue
+        @logger.fatal("Unable to store pkg index...")
       end
     end
-    PackageLogger.instance.debug("mutex done")
+    @logger.debug("mutex done")
   end
 end
