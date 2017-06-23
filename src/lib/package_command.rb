@@ -27,6 +27,33 @@ class PackageCommand
     execute_command(cmd_hash)
   end
 
+  # Parse command string and valiate for errors
+  def parse_command(cmd)
+    cmd.chomp!
+    @logger.debug("Received #{cmd} from socket")
+    # Start with splitting on pipes
+
+    return parse_error if cmd.count('|') != 2
+    cmd_array = cmd.split('|')
+
+    @logger.debug("Parsed cmd into array: #{cmd_array}")
+
+    return parse_error unless valid_command?(cmd_array)
+
+    @logger.debug("Command valid: #{cmd_array}")
+
+    # Return parsed command line
+    cmd_hash = {}
+    cmd_hash[:type] = cmd_array[0].upcase.to_sym
+    cmd_hash[:package] = cmd_array[1].downcase
+    cmd_hash[:deps] = []
+    cmd_hash[:deps] = cmd_array[2].downcase.split(',') if cmd_array.length == 3
+
+    @logger.debug("Parsed hash: #{cmd_hash}")
+
+    cmd_hash
+  end
+
   private
 
   def valid_command?(cmd_array)
@@ -61,33 +88,6 @@ class PackageCommand
     end
 
     true
-  end
-
-  # Parse command string and valiate for errors
-  def parse_command(cmd)
-    cmd.chomp!
-    @logger.debug("Received #{cmd} from socket")
-    # Start with splitting on pipes
-
-    return parse_error if cmd.count('|') != 2
-    cmd_array = cmd.split('|')
-
-    @logger.debug("Parsed cmd into array: #{cmd_array}")
-
-    return parse_error unless valid_command?(cmd_array)
-
-    @logger.debug("Command valid: #{cmd_array}")
-
-    # Return parsed command line
-    cmd_hash = {}
-    cmd_hash[:type] = cmd_array[0].upcase.to_sym
-    cmd_hash[:package] = cmd_array[1].downcase
-    cmd_hash[:deps] = []
-    cmd_hash[:deps] = cmd_array[2].downcase.split(',') if cmd_array.length == 3
-
-    @logger.debug("Parsed hash: #{cmd_hash}")
-
-    cmd_hash
   end
 
   def execute_command(cmd_hash)

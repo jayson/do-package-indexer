@@ -18,9 +18,9 @@ class PackageStore
   # Adds a package and deps to storage. Thread safe with Mutex
   def add_package(pkg_name, deps)
     with_mutex do
-      return true if @index[:packages].include?(pkg_name)
-
       @logger.debug("Installing #{pkg_name} with #{deps}")
+
+      # Check if we have dependencies installed
       unless deps.empty?
         deps.each do |dep|
           @logger.debug("#{pkg_name} needs #{dep}")
@@ -30,6 +30,13 @@ class PackageStore
       end
 
       @index[:packages].push(pkg_name)
+      # Store reverse dependency lookup
+      unless deps.empty?
+        deps.each do |dep|
+          @index[:deps][dep] = [] unless @index[:deps].key?(dep)
+          @index[:deps][dep].push(pkg_name)
+        end
+      end
       @index[:deps][pkg_name] = deps
       @logger.info("Added #{pkg_name} to index")
       true
