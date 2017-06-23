@@ -1,6 +1,5 @@
 require 'thread'
 require 'singleton'
-require './lib/package'
 require './lib/package_logger'
 
 # This class is responsible for handling the storage of packages and
@@ -11,7 +10,7 @@ class PackageStore
   def initialize
     # Use a single mutex for all threads
     @mutex = Mutex.new
-    @index = { packages: [], deps: {} }
+    @index = { packages: {}, deps: {} }
     @logger = PackageLogger.instance
   end
 
@@ -24,12 +23,12 @@ class PackageStore
       unless deps.empty?
         deps.each do |dep|
           @logger.debug("#{pkg_name} needs #{dep}")
-          return false unless @index[:packages].include?(dep.to_s)
+          return false unless @index[:packages].key?(dep.to_s)
           @logger.debug("#{pkg_name} found #{dep}")
         end
       end
 
-      @index[:packages].push(pkg_name)
+      @index[:packages][pkg_name] = true
       # Store reverse dependency lookup
       unless deps.empty?
         deps.each do |dep|
@@ -46,7 +45,7 @@ class PackageStore
   # Looks up whether or not a package is indexed
   def query_package(pkg_name)
     @logger.info("Querying for #{pkg_name}")
-    @index[:packages].include?(pkg_name)
+    @index[:packages].key?(pkg_name)
   end
 
   # Removes a package if nothing depends on it

@@ -76,14 +76,14 @@ class PackageCommand
     end
 
     # Check for invalid package names
-    if cmd_array[0].casecmp('INDEX') && /[^a-zA-Z0-9\-_+]/ =~ cmd_array[1]
+    if /[^a-zA-Z0-9\-_+]/ =~ cmd_array[1]
       @logger.debug("Invalid package name #{cmd_array[1]}")
       return false
     end
 
-    # Check for invalid dep names
+    # Check for invalid dep names and allow multiple packages with comma
     if cmd_array[0].casecmp('INDEX') && /[^a-zA-Z0-9\-_+,]/ =~ cmd_array[2]
-      @logger.debug("Invalid deps format: #{cmd_array[1]}")
+      @logger.debug("Invalid deps format: #{cmd_array[2]}")
       return false
     end
 
