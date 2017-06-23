@@ -12,11 +12,15 @@ class PackageIndexer
         cmd = PackageCommand.new
 
         loop do
-          line = client.gets
-          PackageLogger.instance.info("Starting line #{line.chomp}")
-          response = cmd.run_command(line)
-          PackageLogger.instance.info("#{line.chomp} Command response: #{response}")
-          client.puts response
+          begin
+            line = client.gets
+            PackageLogger.instance.info("Starting line #{line.chomp}")
+            response = cmd.run_command(line)
+            PackageLogger.instance.info("#{line.chomp} Command response: #{response}")
+            client.puts response
+          rescue
+            PackageLogger.instance.fatal("#{line.chomp} threw an exception")
+          end
         end
       end
     end
