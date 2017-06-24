@@ -1,6 +1,5 @@
 require 'thread'
 require 'singleton'
-require './lib/package_logger'
 
 # This class is responsible for handling the storage of packages and
 #   dependencies
@@ -28,7 +27,9 @@ class PackageStore
         end
       end
 
-      @index[:packages][pkg_name] = true
+      # Nuke all deps so you can start clean if they have changed
+      remove_package_deps(pkg_name)
+      @index[:packages][pkg_name] = deps
       # Store reverse dependency lookup
       unless deps.empty?
         deps.each do |dep|
@@ -51,13 +52,14 @@ class PackageStore
   def remove_package(pkg_name)
     with_mutex do
       if @index[:deps].key? pkg_name
-        @index[:deps][pkg_name].each do |pkg, junk|
+        @index[:deps][pkg_name].each do |pkg, _junk|
           if query_package(pkg)
             @logger.info("Unable to remove package #{pkg_name} due to dependency on #{pkg}")
             return false
           end
         end
       end
+      remove_package_deps(pkg_name)
       @index[:packages].delete(pkg_name)
       @logger.info("Removed #{pkg_name} from index")
       return true
@@ -65,6 +67,17 @@ class PackageStore
   end
 
   private
+
+  # Nuke all dependencies so you can start clean
+  # Only ever called from methods that have mutex writing lock
+  def remove_package_deps(pkg_name)
+    if @index[:packages].key?(pkg_name) &&
+       !@index[:packages][pkg_name].empty?
+      @index[:packages][pkg_name].each do |dep|
+        @index[:deps][dep].delete(pkg_name)
+      end
+    end
+  end
 
   # Helper method for thread safe locking operations
   def with_mutex

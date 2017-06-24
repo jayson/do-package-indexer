@@ -1,4 +1,5 @@
 require './lib/package_command.rb'
+require './lib/test_logger.rb'
 
 describe '.parse_command' do
   let(:pkg_cmd) { PackageCommand.new }
@@ -80,6 +81,33 @@ describe '.run_command' do
     it 'adds package already indexed' do
       response = pkg_cmd.run_command("INDEX|glibc|\n")
       expect(response).to eql("OK\n")
+    end
+
+    it 'will delete old deps on multiple INDEX commands' do
+      response = pkg_cmd.run_command("INDEX|pkg1|\n")
+      expect(response).to eql("OK\n")
+      response = pkg_cmd.run_command("INDEX|pkg2|\n")
+      expect(response).to eql("OK\n")
+      response = pkg_cmd.run_command("INDEX|jpaul|pkg1,pkg2\n")
+      expect(response).to eql("OK\n")
+      response = pkg_cmd.run_command("INDEX|jpaul|pkg1\n")
+      expect(response).to eql("OK\n")
+      # Should be able to remove this now that jpaul no longer depends on it
+      response = pkg_cmd.run_command("REMOVE|pkg2|\n")
+      expect(response).to eql("OK\n")
+    end
+
+    it 'will add new deps on multiple INDEX commands' do
+      response = pkg_cmd.run_command("INDEX|pkg1|\n")
+      expect(response).to eql("OK\n")
+      response = pkg_cmd.run_command("INDEX|pkg2|\n")
+      expect(response).to eql("OK\n")
+      response = pkg_cmd.run_command("INDEX|jpaul|pkg1\n")
+      expect(response).to eql("OK\n")
+      response = pkg_cmd.run_command("INDEX|jpaul|pkg1,pkg2\n")
+      expect(response).to eql("OK\n")
+      response = pkg_cmd.run_command("REMOVE|pkg2|\n")
+      expect(response).to eql("FAIL\n")
     end
   end
 

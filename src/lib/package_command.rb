@@ -1,4 +1,3 @@
-require './lib/package_logger'
 require './lib/package_store'
 
 # Class to parse and validate command from client
