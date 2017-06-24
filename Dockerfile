@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y ruby
 # Make ilb and log directories for package installer
 RUN mkdir /usr/lib/package-indexer
 RUN mkdir /var/log/package-indexer
+RUN ln -s /dev/stdout /var/log/package-indexer/index.log
 
 # Place ruby source in /usr/src/package-installer
 ADD src/ /usr/lib/package-indexer
